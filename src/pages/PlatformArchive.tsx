@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { mockPosts } from '@/lib/sanity';
+import { useSanityPosts } from '@/hooks/useSanity';
 import ContentGrid from '@/components/ContentGrid';
 import { motion } from 'motion/react';
 import { Platform } from '@/types';
@@ -15,7 +15,8 @@ const platformIcons: Record<Platform, any> = {
 
 export default function PlatformArchive() {
   const { platform } = useParams();
-  const filteredPosts = mockPosts.filter(p => p.platform === platform);
+  const { posts, loading } = useSanityPosts();
+  const filteredPosts = posts.filter(p => p.platform === platform);
   const Icon = platformIcons[platform as Platform];
 
   return (
@@ -45,7 +46,7 @@ export default function PlatformArchive() {
         </motion.div>
       </div>
       
-      <ContentGrid posts={filteredPosts} />
+      <ContentGrid posts={filteredPosts} loading={loading} />
     </main>
   );
 }

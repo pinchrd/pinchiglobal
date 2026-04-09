@@ -1,12 +1,13 @@
 import { useParams, Link } from 'react-router-dom';
-import { mockPosts } from '@/lib/sanity';
+import { useSanityPost } from '@/hooks/useSanity';
 import { motion } from 'motion/react';
 import { ArrowLeft, Calendar, User, Share2, Youtube, Twitter, MessageCircle, Video } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Platform } from '@/types';
 import SEO from '@/components/SEO';
+import { PortableText } from '@/components/PortableText';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 const platformIcons: Record<Platform, any> = {
   YouTube: Youtube,
@@ -22,13 +23,28 @@ function getYouTubeId(url: string) {
 }
 
 export default function PostDetail() {
-  const { slug } = useParams();
-  const post = mockPosts.find(p => p.slug.current === slug);
+  const { slug = '' } = useParams();
+  const { post, loading, error } = useSanityPost(slug);
 
-  if (!post) {
+  if (loading) {
+    return (
+      <div className="pt-32 text-center">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-muted-foreground"
+        >
+          <p>Loading post...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (error || !post) {
     return (
       <div className="pt-32 text-center">
         <h1 className="text-4xl font-bold">Post Not Found</h1>
+        {error && <p className="text-destructive mt-2">{error}</p>}
         <Link to="/" className="text-cyan-400 mt-4 block">Return Home</Link>
       </div>
     );
@@ -123,7 +139,7 @@ export default function PostDetail() {
 
         <div className="prose prose-invert max-w-none mb-12">
           <p className="text-xl text-muted-foreground leading-relaxed">
-            This is a placeholder for the content from Sanity. In a real application, this would be rendered using PortableText. The retro-futurist aesthetic continues here with deep teal backgrounds and neon cyan accents.
+            {post.description}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             {post.metaTags.map(tag => (
@@ -133,6 +149,17 @@ export default function PostDetail() {
             ))}
           </div>
         </div>
+
+        {post.content && post.content.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-12"
+          >
+            <PortableText blocks={post.content} />
+          </motion.div>
+        )}
 
         <div className="flex items-center justify-between pt-8 border-t border-white/10">
           <div className="flex items-center gap-4">

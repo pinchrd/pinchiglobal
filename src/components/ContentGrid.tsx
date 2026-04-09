@@ -21,9 +21,10 @@ function getYouTubeId(url: string) {
 
 interface ContentGridProps {
   posts: SocialPost[];
+  loading?: boolean;
 }
 
-export default function ContentGrid({ posts }: ContentGridProps) {
+export default function ContentGrid({ posts, loading = false }: ContentGridProps) {
   const [filter, setFilter] = useState<Platform | 'All'>('All');
 
   const filteredPosts = filter === 'All' 
@@ -61,8 +62,25 @@ export default function ContentGrid({ posts }: ContentGridProps) {
         layout
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
       >
-        <AnimatePresence mode="popLayout">
-          {filteredPosts.map((post) => {
+        {loading ? (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="col-span-full text-center py-12"
+          >
+            <p className="text-muted-foreground">Loading content...</p>
+          </motion.div>
+        ) : filteredPosts.length === 0 ? (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="col-span-full text-center py-12"
+          >
+            <p className="text-muted-foreground">No posts found.</p>
+          </motion.div>
+        ) : (
+          <AnimatePresence mode="popLayout">
+            {filteredPosts.map((post) => {
             const youtubeId = post.platform === 'YouTube' ? getYouTubeId(post.mediaUrl) : null;
             const thumbnailUrl = youtubeId 
               ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg` 
@@ -121,8 +139,9 @@ export default function ContentGrid({ posts }: ContentGridProps) {
                 </Link>
               </motion.div>
             );
-          })}
-        </AnimatePresence>
+            })}
+          </AnimatePresence>
+        )}
       </motion.div>
     </section>
   );
